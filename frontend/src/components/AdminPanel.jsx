@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-axios.defaults.baseURL = "http://localhost:5000";
+axios.defaults.baseURL = "https://quiz-project-yx56.onrender.com";
 
 export default function AdminPanel() {
   const [language, setLanguage] = useState("HTML");
