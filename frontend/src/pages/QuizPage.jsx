@@ -35,7 +35,7 @@ export default function QuizPage() {
 
         // API Request
         const res = await axios.get(
-          `http://localhost:5000/api/quiz?topic=${encodeURIComponent(
+          `https://quiz-project-yx56.onrender.com/api/quiz?topic=${encodeURIComponent(
             normalizedTopic
           )}`
         );
