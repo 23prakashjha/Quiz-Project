@@ -3,8 +3,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import quizRoutes from "./routes/quizRoutes.js";
-// Only import authRoutes if you have it
 import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 
@@ -22,6 +22,7 @@ app.use(cors());
 // ✅ Mount routes
 if (authRoutes) app.use("/api/auth", authRoutes);
 app.use("/api/quiz", quizRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Root route
 app.get("/", (req, res) => {

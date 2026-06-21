@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Navbar from "./components/Navbar";
 import AdminPanel from "./components/AdminPanel";
+import AdminDashboard from "./pages/AdminDashboard";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null); // null = checking
@@ -105,7 +106,17 @@ export default function App() {
         <Route
           path="/admin"
           element={
-            isAuthenticated ? <AdminPanel /> : <Navigate to="/login" replace />
+            isAuthenticated
+              ? <AdminPanel user={user} isAuthenticated={isAuthenticated} onLoginSuccess={handleLoginSuccess} />
+              : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            isAuthenticated
+              ? <AdminDashboard />
+              : <Navigate to="/login" replace />
           }
         />
 
