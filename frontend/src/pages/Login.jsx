@@ -31,7 +31,7 @@ export default function Login({ onLoginSuccess }) {
 
       if (onLoginSuccess) onLoginSuccess(res.data.user, res.data.token);
 
-      if (res.data.user.role === "admin") navigate("/admin");
+      if (res.data.user.role === "admin") navigate("/admin/dashboard");
       else navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed. Please try again.");
