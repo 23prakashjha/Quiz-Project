@@ -16,8 +16,18 @@ const app = express();
 // Middleware
 app.use(express.json());
 
-// Enable CORS (adjust origin in production)
-app.use(cors());
+// Enable CORS
+app.use(
+  cors({
+    origin: [
+      "https://quiz-project-blush-two.vercel.app",
+      "http://localhost:5173",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
 // ✅ Mount routes
 if (authRoutes) app.use("/api/auth", authRoutes);
