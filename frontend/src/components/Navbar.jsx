@@ -38,12 +38,8 @@ export default function Navbar({ onLogout, user }) {
 
   const navLinks = [
     { path: "/", label: "Home", icon: "🏠" },
-    ...(user?.role === "admin"
-      ? [
-          { path: "/admin", label: "Admin", icon: "⚙️" },
-          { path: "/admin/dashboard", label: "Dashboard", icon: "📊" },
-        ]
-      : []),
+    { path: "/about", label: "About", icon: "ℹ️" },
+    { path: "/contact", label: "Contact", icon: "📬" },
   ];
 
   return (
@@ -123,12 +119,6 @@ export default function Navbar({ onLogout, user }) {
                     </div>
 
                     {/* Menu Items */}
-                    <button
-                      onClick={() => { navigate("/"); setUserMenuOpen(false); }}
-                      className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      <span>🏠</span> Home
-                    </button>
                     {user.role === "admin" && (
                       <>
                         <button

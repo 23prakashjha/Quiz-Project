@@ -6,6 +6,8 @@ import QuizPage from "./pages/QuizPage";
 import Result from "./pages/ResultPage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 import Navbar from "./components/Navbar";
 import AdminPanel from "./components/AdminPanel";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -65,6 +67,10 @@ export default function App() {
             isAuthenticated ? <Home /> : <Navigate to="/register" replace />
           }
         />
+
+        {/* Public Routes - accessible without login */}
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
 
         {/* Register Route */}
         <Route
