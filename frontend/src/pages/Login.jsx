@@ -30,9 +30,6 @@ export default function Login({ onLoginSuccess }) {
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       if (onLoginSuccess) onLoginSuccess(res.data.user, res.data.token);
-
-      if (res.data.user.role === "admin") navigate("/admin/dashboard");
-      else navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {

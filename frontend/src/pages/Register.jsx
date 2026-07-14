@@ -35,7 +35,6 @@ export default function Register({ onLoginSuccess }) {
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       if (onLoginSuccess) onLoginSuccess(res.data.user, res.data.token);
-      navigate(role === "admin" ? "/admin/dashboard" : "/");
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Email may already be in use.");
     } finally {

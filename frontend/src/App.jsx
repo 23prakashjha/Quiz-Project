@@ -71,7 +71,7 @@ export default function App() {
           path="/register"
           element={
             isAuthenticated ? (
-              <Navigate to="/" replace />
+              <Navigate to={user?.role === "admin" ? "/admin/dashboard" : "/"} replace />
             ) : (
               <Register onLoginSuccess={handleLoginSuccess} />
             )
@@ -83,7 +83,7 @@ export default function App() {
           path="/login"
           element={
             isAuthenticated ? (
-              <Navigate to="/" replace />
+              <Navigate to={user?.role === "admin" ? "/admin/dashboard" : "/"} replace />
             ) : (
               <Login onLoginSuccess={handleLoginSuccess} />
             )
