@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
-const API = "https://quiz-project-yx56.onrender.com";
+const API = "https://quiz-project-aqu6.onrender.com";
 
 export default function QuizPage() {
   const [questions, setQuestions] = useState([]);

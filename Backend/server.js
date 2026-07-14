@@ -21,6 +21,7 @@ app.use(
   cors({
     origin: [
       "https://quiz-project-blush-two.vercel.app",
+      "https://quiz-project-aqu6.onrender.com",
       "http://localhost:5173",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

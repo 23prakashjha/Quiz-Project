@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const API = "https://quiz-project-yx56.onrender.com";
+const API = "https://quiz-project-aqu6.onrender.com";
 
 const HEADERS = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
 
