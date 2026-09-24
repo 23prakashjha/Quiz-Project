@@ -19,14 +19,17 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 sm:px-6 lg:px-8 py-12 sm:py-20 transition-colors duration-300">
-      <div className={`max-w-3xl mx-auto transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+    <div className="relative overflow-hidden min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 sm:px-6 lg:px-8 py-12 sm:py-20 transition-colors duration-300">
+      <div className="hero-grid absolute inset-0" />
+      <div className="aurora-blob b-cyan w-80 h-80 -top-24 -right-24" />
+      <div className="aurora-blob b-fuchsia w-72 h-72 bottom-0 -left-24" style={{ animationDelay: "-11s" }} />
+      <div className={`max-w-3xl mx-auto relative z-10 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         {/* Header */}
         <div className="text-center mb-10 sm:mb-14">
           <span className="text-5xl mb-4 block">📬</span>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
             Contact{" "}
-            <span className="bg-linear-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent">
+            <span className="text-gradient-anim">
               Us
             </span>
           </h1>
@@ -36,7 +39,7 @@ export default function Contact() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 p-6 sm:p-10">
+        <div className="card-accent glow-indigo bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 p-6 sm:p-10">
           {submitted ? (
             <div className="text-center py-10">
               <span className="text-5xl block mb-4">✅</span>
@@ -83,7 +86,7 @@ export default function Contact() {
               </div>
               <button
                 type="submit"
-                className="w-full py-3 rounded-lg text-white font-semibold text-sm bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-200 active:scale-[0.98]"
+                className="btn-shine w-full py-3 rounded-lg text-white font-semibold text-sm bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-200 active:scale-[0.98]"
               >
                 Send Message
               </button>
@@ -93,17 +96,17 @@ export default function Contact() {
 
         {/* Info */}
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-          <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700 card-accent hover:shadow-lg transition-all duration-300">
             <span className="text-2xl block mb-2">📧</span>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">support@quizverse.dev</p>
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700 card-accent hover:shadow-lg transition-all duration-300">
             <span className="text-2xl block mb-2">🐙</span>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">GitHub</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">github.com/quizverse</p>
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700 card-accent hover:shadow-lg transition-all duration-300">
             <span className="text-2xl block mb-2">💬</span>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Feedback</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">We value your input</p>

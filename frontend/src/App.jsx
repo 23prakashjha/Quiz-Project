@@ -87,13 +87,17 @@ export default function App() {
         <Route
           path="/quiz/:topic"
           element={
-            isAuthenticated ? <QuizPage /> : <Navigate to="/login" replace />
+            !isAuthenticated ? <Navigate to="/login" replace />
+            : user?.role === "admin" ? <Navigate to="/admin/dashboard" replace />
+            : <QuizPage />
           }
         />
         <Route
           path="/quiz/adaptive/:topic"
           element={
-            isAuthenticated ? <AdaptiveQuizPage /> : <Navigate to="/login" replace />
+            !isAuthenticated ? <Navigate to="/login" replace />
+            : user?.role === "admin" ? <Navigate to="/admin/dashboard" replace />
+            : <AdaptiveQuizPage />
           }
         />
         <Route
@@ -105,23 +109,25 @@ export default function App() {
         <Route
           path="/dashboard"
           element={
-            isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />
+            !isAuthenticated ? <Navigate to="/login" replace />
+            : user?.role === "admin" ? <Navigate to="/admin/dashboard" replace />
+            : <Dashboard />
           }
         />
         <Route
           path="/admin"
           element={
-            isAuthenticated
-              ? <AdminPanel user={user} isAuthenticated={isAuthenticated} onLoginSuccess={handleLoginSuccess} />
-              : <Navigate to="/login" replace />
+            !isAuthenticated ? <Navigate to="/login" replace />
+            : user?.role !== "admin" ? <Navigate to="/" replace />
+            : <AdminPanel user={user} isAuthenticated={isAuthenticated} onLoginSuccess={handleLoginSuccess} />
           }
         />
         <Route
           path="/admin/dashboard"
           element={
-            isAuthenticated
-              ? <AdminDashboard />
-              : <Navigate to="/login" replace />
+            !isAuthenticated ? <Navigate to="/login" replace />
+            : user?.role !== "admin" ? <Navigate to="/" replace />
+            : <AdminDashboard />
           }
         />
 

@@ -19,6 +19,23 @@ export default function ResultPage() {
   const [showConfetti, setShowConfetti] = useState(true);
   const [explaining, setExplaining] = useState(null);
   const [explainText, setExplainText] = useState({});
+  const [certificateId] = useState(
+    () => attempt?.certificateId || `QV-${Date.now().toString(36).toUpperCase().slice(-6)}${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+  );
+
+  const userName = (() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const u = JSON.parse(storedUser);
+      return u.name || u.email || "Student";
+    }
+    return "Student";
+  })();
+
+  const passed =
+    typeof attempt?.passed === "boolean"
+      ? attempt.passed
+      : Math.round((localScore / Math.max(localTotal, 1)) * 100) >= 60;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,6 +75,16 @@ export default function ResultPage() {
     }
   };
 
+  const shareCertificate = async () => {
+    const text = `🎓 I earned a Certificate of Achievement on QuizVerse AI — ${percentage}% on the ${language.toUpperCase()} quiz! (#${certificateId})`;
+    if (navigator.share) {
+      await navigator.share({ title: "QuizVerse AI Certificate", text }).catch(() => {});
+    } else {
+      await navigator.clipboard.writeText(text);
+      alert("Certificate details copied to clipboard!");
+    }
+  };
+
   const handleExplain = async (q, idx) => {
     if (explaining === idx) return;
     setExplaining(idx);
@@ -83,8 +110,11 @@ export default function ResultPage() {
   const reviewItems = Array.isArray(answers) ? answers : [];
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-indigo-100 via-white to-cyan-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 transition-colors duration-300">
-      <div className="max-w-3xl mx-auto px-4 py-10 relative overflow-hidden">
+    <div className="relative overflow-hidden min-h-screen bg-linear-to-br from-indigo-100 via-white to-cyan-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 transition-colors duration-300">
+      <div className="aurora-blob b-indigo w-80 h-80 -top-24 -left-24" />
+      <div className="aurora-blob b-cyan w-80 h-80 top-1/3 -right-28" style={{ animationDelay: "-8s" }} />
+      <div className="aurora-blob b-fuchsia w-72 h-72 bottom-0 left-1/4" style={{ animationDelay: "-16s" }} />
+      <div className="max-w-3xl mx-auto px-4 py-10 relative overflow-hidden z-10">
         {showConfetti && confettiPieces.map((p) => (
           <div
             key={p.id}
@@ -102,7 +132,7 @@ export default function ResultPage() {
 
         {/* Score card */}
         <div className="w-full max-w-md mx-auto animate-scale-in">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl shadow-indigo-500/10 dark:shadow-black/30 border border-gray-200 dark:border-slate-700 p-6 sm:p-8 text-center">
+          <div className="glow-indigo bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl shadow-indigo-500/10 dark:shadow-black/30 border border-gray-200 dark:border-slate-700 p-6 sm:p-8 text-center">
             <div className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-linear-to-r ${color} text-white text-xs font-bold mb-4 shadow-lg`}>
               {grade}
             </div>
@@ -129,7 +159,7 @@ export default function ResultPage() {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-4xl sm:text-5xl mb-1">{emoji}</span>
-                <span className="text-2xl sm:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">{percentage}%</span>
+                <span className="text-2xl sm:text-3xl font-extrabold text-gradient-anim">{percentage}%</span>
               </div>
             </div>
 
@@ -154,10 +184,10 @@ export default function ResultPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <button onClick={() => navigate(`/quiz/${language.toLowerCase()}`)} className="flex-1 px-5 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98]">
+              <button onClick={() => navigate(`/quiz/${language.toLowerCase()}`)} className="btn-shine flex-1 px-5 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98]">
                 🔄 Retry Quiz
               </button>
-              <button onClick={() => navigate("/dashboard")} className="flex-1 px-5 py-3 rounded-xl bg-linear-to-r from-fuchsia-600 to-violet-600 text-white font-semibold text-sm hover:from-fuchsia-700 hover:to-violet-700 transition-all shadow-lg shadow-fuchsia-500/25 active:scale-[0.98]">
+              <button onClick={() => navigate("/dashboard")} className="btn-shine flex-1 px-5 py-3 rounded-xl bg-linear-to-r from-fuchsia-600 to-violet-600 text-white font-semibold text-sm hover:from-fuchsia-700 hover:to-violet-700 transition-all shadow-lg shadow-fuchsia-500/25 active:scale-[0.98]">
                 📊 My Analytics
               </button>
             </div>
@@ -170,10 +200,56 @@ export default function ResultPage() {
           </div>
         </div>
 
+        {/* Certificate of Achievement */}
+        {passed && (
+          <div className="mt-8 animate-slide-up">
+            <div id="quiz-certificate" className="card-accent glow-emerald relative bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl shadow-xl border-4 border-double border-indigo-200 dark:border-indigo-700 p-6 sm:p-10 text-center overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-emerald-100 dark:bg-emerald-900/30 opacity-60" />
+              <div className="absolute -bottom-12 -left-12 w-44 h-44 rounded-full bg-indigo-100 dark:bg-indigo-900/30 opacity-60" />
+              <div className="relative z-10">
+                <span className="text-4xl sm:text-5xl inline-block animate-float">🎓</span>
+                <p className="mt-3 text-xs font-bold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-400">Certificate of Achievement</p>
+                <div className="my-4 flex items-center justify-center gap-3">
+                  <span className="h-px w-16 sm:w-24 bg-linear-to-r from-transparent to-emerald-400" />
+                  🏆
+                  <span className="h-px w-16 sm:w-24 bg-linear-to-r from-emerald-400 to-transparent" />
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">This is proudly presented to</p>
+                <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-gradient-anim">{userName}</h2>
+                <p className="mt-4 text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed">
+                  for successfully completing the <strong className="text-indigo-600 dark:text-indigo-400 capitalize">{language}</strong> quiz with a score of{" "}
+                  <strong className="text-gray-900 dark:text-white">{localScore}/{localTotal} ({percentage}%)</strong>
+                </p>
+                <div className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-linear-to-r ${color} text-white text-xs font-bold my-4 shadow-md`}>
+                  {emoji} Grade {grade}
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  <span>📅 {new Date().toLocaleDateString()}</span>
+                  <span>🪪 {certificateId}</span>
+                </div>
+                <div className="mt-6 pt-4 border-t border-gray-200 dark:border-slate-700 flex items-center justify-center gap-3 text-xs">
+                  <span>🎓</span>
+                  <span className="font-bold text-gray-700 dark:text-gray-200 tracking-wide">QuizVerse AI</span>
+                  <span className="text-gray-400 dark:text-gray-500">·</span>
+                  <span className="italic text-gray-500 dark:text-gray-400">"Learn, Practice, Master"</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+              <button onClick={() => window.print()} className="btn-shine flex-1 px-5 py-3 rounded-xl bg-linear-to-r from-emerald-600 to-green-600 text-white font-semibold text-sm hover:from-emerald-700 hover:to-green-700 transition-all shadow-lg shadow-emerald-500/25 active:scale-[0.98]">
+                🖨 Print / Save as PDF
+              </button>
+              <button onClick={shareCertificate} className="flex-1 px-5 py-3 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 text-sm font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition-all active:scale-[0.98]">
+                📤 Share certificate
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* AI performance report */}
         {analysis && (
           <div className="mt-8 animate-slide-up">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
+            <div className="card-accent glow-indigo bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-2xl">🤖</span>
                 <div>
@@ -238,7 +314,7 @@ export default function ResultPage() {
         {/* Answer review */}
         {reviewItems.length > 0 && (
           <div className="mt-8 animate-slide-up">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
+            <div className="card-accent glow-indigo bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
               <div className="flex items-center gap-3 mb-5">
                 <span className="text-2xl">🧾</span>
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">Answer Review</h2>

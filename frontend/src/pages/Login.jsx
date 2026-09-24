@@ -37,8 +37,10 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-100 via-white to-cyan-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 py-8 transition-colors duration-300">
-      <div className="w-full max-w-md animate-slide-up">
+    <div className="relative overflow-hidden min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-100 via-white to-cyan-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 py-8 transition-colors duration-300">
+      <div className="aurora-blob b-indigo w-80 h-80 -top-20 -left-24" />
+      <div className="aurora-blob b-cyan w-80 h-80 -bottom-24 -right-20" style={{ animationDelay: "-10s" }} />
+      <div className="w-full max-w-md animate-slide-up relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
           <span className="text-5xl">🧠</span>
@@ -49,14 +51,14 @@ export default function Login({ onLoginSuccess }) {
         </div>
 
         {/* Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-indigo-500/5 dark:shadow-black/20 border border-gray-200 dark:border-slate-700 p-6 sm:p-8">
+        <div className="card-accent glow-indigo bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-indigo-500/5 dark:shadow-black/20 border border-gray-200 dark:border-slate-700 p-6 sm:p-8">
           {/* Role Tabs */}
           <div className="flex bg-gray-100 dark:bg-slate-700 rounded-xl p-1 mb-6">
             <button
               onClick={() => setRole("user")}
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                 role === "user"
-                  ? "bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                  ? "bg-linear-to-r from-indigo-600 to-cyan-500 text-white shadow-md"
                   : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               }`}
             >
@@ -66,7 +68,7 @@ export default function Login({ onLoginSuccess }) {
               onClick={() => setRole("admin")}
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                 role === "admin"
-                  ? "bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                  ? "bg-linear-to-r from-fuchsia-600 to-violet-600 text-white shadow-md"
                   : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               }`}
             >
@@ -135,7 +137,7 @@ export default function Login({ onLoginSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg text-white font-semibold text-sm bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 disabled:from-indigo-300 disabled:to-indigo-300 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:scale-[0.98]"
+              className="btn-shine w-full py-3 rounded-lg text-white font-semibold text-sm bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 disabled:from-indigo-300 disabled:to-indigo-300 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:scale-[0.98]"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

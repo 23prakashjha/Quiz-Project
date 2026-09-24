@@ -100,8 +100,10 @@ export default function AdaptiveQuizPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-fuchsia-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
-        <div className="text-center animate-fade-in">
+      <div className="relative overflow-hidden min-h-screen flex items-center justify-center bg-linear-to-br from-fuchsia-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
+        <div className="aurora-blob b-fuchsia w-80 h-80 -top-24 -left-24" />
+        <div className="aurora-blob b-indigo w-80 h-80 -bottom-24 -right-20" style={{ animationDelay: "-9s" }} />
+        <div className="text-center animate-fade-in relative z-10">
           <div className="w-12 h-12 mx-auto mb-4 border-4 border-fuchsia-200 dark:border-fuchsia-900 border-t-fuchsia-600 rounded-full animate-spin" />
           <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Analyzing your first question...</p>
         </div>
@@ -111,8 +113,10 @@ export default function AdaptiveQuizPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950 px-4">
-        <div className="text-center max-w-md animate-scale-in">
+      <div className="relative overflow-hidden min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950 px-4">
+        <div className="aurora-blob b-fuchsia w-72 h-72 -top-20 -right-20" />
+        <div className="aurora-blob b-indigo w-72 h-72 -bottom-20 -left-20" style={{ animationDelay: "-10s" }} />
+        <div className="text-center max-w-md animate-scale-in relative z-10">
           <div className="text-6xl mb-4">😕</div>
           <p className="text-red-500 dark:text-red-400 font-semibold text-lg mb-2">{error}</p>
           <button onClick={() => navigate("/")} className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition shadow-md">
@@ -128,7 +132,9 @@ export default function AdaptiveQuizPage() {
   const total = progress.total || 10;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-fuchsia-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 transition-colors duration-300">
+    <div className="relative overflow-hidden min-h-screen bg-linear-to-br from-fuchsia-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 transition-colors duration-300">
+      <div className="aurora-blob b-fuchsia w-72 h-72 -top-20 -right-20" />
+      <div className="aurora-blob b-indigo w-80 h-80 bottom-0 -left-24" style={{ animationDelay: "-12s" }} />
       <div className="sticky top-16 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-slate-700">
         <div className="max-w-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-3">
@@ -167,14 +173,14 @@ export default function AdaptiveQuizPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 sm:py-8">
+      <div className="max-w-2xl mx-auto px-4 py-6 sm:py-8 relative z-10">
         {revealed ? (
           <div className="animate-fade-in">
             {/* Feedback card */}
             <div className={`rounded-2xl shadow-lg border p-5 sm:p-6 mb-4 ${
               revealed.isCorrect
-                ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800"
-                : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 glow-emerald"
+                : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 glow-fuchsia"
             }`}>
               <div className="flex items-start gap-3">
                 <span className="text-3xl">{revealed.isCorrect ? "✅" : "❌"}</span>
@@ -212,7 +218,7 @@ export default function AdaptiveQuizPage() {
 
             <button
               onClick={nextQuestion}
-              className="w-full py-3 rounded-xl bg-linear-to-r from-fuchsia-600 to-violet-600 text-white font-bold text-sm hover:from-fuchsia-700 hover:to-violet-700 transition-all shadow-lg shadow-fuchsia-500/25 active:scale-[0.98]"
+              className="btn-shine w-full py-3 rounded-xl bg-linear-to-r from-fuchsia-600 to-violet-600 text-white font-bold text-sm hover:from-fuchsia-700 hover:to-violet-700 transition-all shadow-lg shadow-fuchsia-500/25 active:scale-[0.98]"
             >
               {revealed.done ? "View AI Report →" : "Next Question →"}
             </button>
@@ -229,7 +235,7 @@ export default function AdaptiveQuizPage() {
 
               <div className="space-y-3">
                 {question?.options.map((opt, idx) => {
-                  const base = "flex items-center gap-3 w-full p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 text-left text-sm sm:text-base";
+                  const base = "flex items-center gap-3 w-full p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 text-left text-sm sm:text-base hover:translate-x-1";
                   const cls = selected === idx
                     ? `${base} border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30 text-fuchsia-700 dark:text-fuchsia-300 shadow-sm`
                     : `${base} border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-gray-700 dark:text-gray-200 hover:border-fuchsia-300 dark:hover:border-fuchsia-500 hover:bg-fuchsia-50/50 dark:hover:bg-fuchsia-900/20 cursor-pointer`;

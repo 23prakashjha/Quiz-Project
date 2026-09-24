@@ -38,6 +38,7 @@ const TOPICS = [
 
 export default function Home() {
   const navigate = useNavigate();
+  const isAdmin = JSON.parse(localStorage.getItem("user") || "null")?.role === "admin";
   const [userName] = useState(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -71,6 +72,10 @@ export default function Home() {
   }, [search]);
 
   const handleStartQuiz = (topic) => {
+    if (isAdmin) {
+      navigate("/admin/dashboard");
+      return;
+    }
     navigate(`/quiz/${topic.toLowerCase()}`);
   };
 
@@ -78,18 +83,21 @@ export default function Home() {
   const recommended = stats?.analysis?.suggestedTopics || [];
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 sm:px-6 lg:px-8 py-8 sm:py-12 transition-colors duration-300">
+    <div className="relative overflow-hidden min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 sm:px-6 lg:px-8 py-8 sm:py-12 transition-colors duration-300">
+      <div className="hero-grid absolute inset-0" />
+      <div className="aurora-blob b-indigo w-72 h-72 -top-16 -left-20" />
+      <div className="aurora-blob b-cyan w-80 h-80 top-1/3 -right-24" style={{ animationDelay: "-8s" }} />
+      <div className="aurora-blob b-fuchsia w-72 h-72 bottom-0 left-1/4" style={{ animationDelay: "-15s" }} />
+
       {/* Hero Section */}
-      <div className={`text-center mb-8 sm:mb-12 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+      <div className={`relative z-10 text-center mb-8 sm:mb-12 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm font-medium mb-4">
           <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
           {stats ? `${stats.totalAttempts} quizzes · ${stats.overallScore}% avg` : "30+ Topics to Explore"}
         </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">
           Welcome back,{" "}
-          <span className="bg-linear-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent">
-            {userName}
-          </span>
+          <span className="text-gradient-anim">{userName}</span>
           <span className="inline-block animate-float">👋</span>
         </h1>
         <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
@@ -98,9 +106,36 @@ export default function Home() {
         </p>
       </div>
 
-      {/* AI Recommended for you */}
+      {/* Teacher mode banner */}
+      {isAdmin && (
+        <div className="relative z-10 max-w-3xl mx-auto mb-8 animate-fade-in">
+          <div className="rounded-2xl bg-linear-to-r from-indigo-600 to-fuchsia-600 p-[1.5px] shadow-lg shadow-indigo-500/20">
+            <div className="rounded-[15px] bg-white dark:bg-slate-800 p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-4">
+              <span className="text-3xl shrink-0">👨‍🏫</span>
+              <div className="flex-1 text-center sm:text-left">
+                <h2 className="font-bold text-gray-900 dark:text-white">Teacher Mode</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Manage the question bank, learners and analytics — quizzes are for students only.</p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => navigate("/admin/dashboard")}
+                  className="btn-shine px-4 py-2 rounded-xl bg-linear-to-r from-indigo-600 to-fuchsia-600 text-white text-sm font-semibold shadow-md"
+                >
+                  📊 Open Dashboard
+                </button>
+                <button
+                  onClick={() => navigate("/admin")}
+                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 text-sm font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition"
+                >
+                  ➕ Add Questions
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {weakTopics.length > 0 && (
-        <div className={`max-w-4xl mx-auto mb-8 transition-all duration-700 delay-50 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+        <div className={`relative z-10 max-w-4xl mx-auto mb-8 transition-all duration-700 delay-50 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
           <div className="rounded-2xl bg-linear-to-r from-fuchsia-600 to-violet-600 p-[1.5px] shadow-lg shadow-fuchsia-500/10 animate-fade-in">
             <div className="rounded-[15px] bg-white dark:bg-slate-800 p-5">
               <div className="flex items-center gap-2 mb-3">
@@ -131,7 +166,7 @@ export default function Home() {
       )}
 
       {/* Search Bar */}
-      <div className={`max-w-xl mx-auto mb-8 sm:mb-12 transition-all duration-700 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+      <div className={`relative z-10 max-w-xl mx-auto mb-8 sm:mb-12 transition-all duration-700 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         <div className="relative group">
           <div className="absolute inset-0 bg-linear-to-r from-indigo-500 to-cyan-500 rounded-xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity" />
           <div className="relative flex items-center bg-white dark:bg-slate-800 rounded-xl shadow-lg shadow-indigo-500/5 border border-gray-200 dark:border-slate-700 overflow-hidden">
@@ -165,7 +200,7 @@ export default function Home() {
       </div>
 
       {/* Topics Grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 max-w-7xl mx-auto transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+      <div className={`relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 max-w-7xl mx-auto transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         {filtered.map((topic, index) => (
           <div
             key={topic.name}
@@ -208,7 +243,7 @@ export default function Home() {
       </div>
 
       {/* Stats Footer */}
-      <div className={`text-center mt-12 sm:mt-16 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+      <div className={`relative z-10 text-center mt-12 sm:mt-16 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         <div className="inline-flex flex-wrap items-center justify-center gap-6 sm:gap-10 px-6 sm:px-10 py-4 sm:py-5 rounded-2xl bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 shadow-sm">
           <div className="text-center">
             <p className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">{TOPICS.length}+</p>

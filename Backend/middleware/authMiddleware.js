@@ -23,6 +23,12 @@ export const protect = async (req, res, next) => {
   }
 };
 
+// Quiz-taking is for learners only — teachers cannot attempt quizzes.
+export const studentsOnly = (req, res, next) => {
+  if (req.user && req.user.role !== "admin") return next();
+  return res.status(403).json({ success: false, message: "Teachers cannot take quizzes." });
+};
+
 
 
 

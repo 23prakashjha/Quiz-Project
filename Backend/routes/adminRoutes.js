@@ -37,14 +37,23 @@ router.delete("/questions/:id", protect, adminOnly, async (req, res) => {
 router.put("/questions/:id", protect, adminOnly, async (req, res) => {
   try {
     const { language, questionText, options, correctAnswer, difficulty, explanation } = req.body;
-    const updated = await Question.findByIdAndUpdate(
-      req.params.id,
-      { language, questionText, options, correctAnswer, difficulty, explanation },
-      { new: true, runValidators: true }
-    );
-    if (!updated) return res.status(404).json({ success: false, message: "Question not found." });
-    res.json({ success: true, message: "Question updated.", data: updated });
+    const question = await Question.findById(req.params.id);
+    if (!question) return res.status(404).json({ success: false, message: "Question not found." });
+
+    // Load-modify-save so cross-field validators (correctAnswer vs options length) run against the full doc.
+    if (typeof language === "string") question.language = language;
+    if (typeof questionText === "string") question.questionText = questionText;
+    if (Array.isArray(options)) question.options = options;
+    if (typeof correctAnswer === "number") question.correctAnswer = correctAnswer;
+    if (typeof difficulty === "string") question.difficulty = difficulty;
+    if (typeof explanation === "string") question.explanation = explanation;
+
+    await question.save();
+    res.json({ success: true, message: "Question updated.", data: question });
   } catch (err) {
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: err.message });
+    }
     res.status(500).json({ success: false, message: err.message });
   }
 });

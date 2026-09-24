@@ -38,6 +38,8 @@ const quizAttemptSchema = new mongoose.Schema(
     total: { type: Number, default: 0 },
     percentage: { type: Number, default: 0 },
     timeTakenSec: { type: Number, default: 0 },
+    passed: { type: Boolean, default: false },
+    certificateId: { type: String, default: null },
   },
   { timestamps: true }
 );

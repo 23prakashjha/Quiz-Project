@@ -19,14 +19,17 @@ export default function About() {
   ];
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 sm:px-6 lg:px-8 py-12 sm:py-20 transition-colors duration-300">
-      <div className={`max-w-5xl mx-auto transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+    <div className="relative overflow-hidden min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 sm:px-6 lg:px-8 py-12 sm:py-20 transition-colors duration-300">
+      <div className="hero-grid absolute inset-0" />
+      <div className="aurora-blob b-indigo w-80 h-80 -top-24 -left-24" />
+      <div className="aurora-blob b-cyan w-80 h-80 top-1/2 -right-28" style={{ animationDelay: "-9s" }} />
+      <div className={`max-w-5xl mx-auto relative z-10 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16">
           <span className="text-5xl mb-4 block">🧠</span>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
             About{" "}
-            <span className="bg-linear-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent">
+            <span className="text-gradient-anim">
               QuizVerse
             </span>
           </h1>
@@ -37,7 +40,7 @@ export default function About() {
         </div>
 
         {/* Mission */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-6 sm:p-10 mb-12">
+        <div className="card-accent glow-indigo bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-6 sm:p-10 mb-12">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">Our Mission</h2>
           <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
             We believe learning to code should be accessible to everyone. QuizVerse
@@ -57,9 +60,9 @@ export default function About() {
           {features.map((f, i) => (
             <div
               key={i}
-              className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all duration-300"
+              className="group bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-200 dark:border-slate-700 shadow-sm card-accent hover:shadow-xl transition-all duration-300"
             >
-              <span className="text-3xl block mb-3">{f.icon}</span>
+              <span className="text-3xl block mb-3 transition-transform duration-300 group-hover:scale-110">{f.icon}</span>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{f.title}</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{f.desc}</p>
             </div>
@@ -70,7 +73,7 @@ export default function About() {
         <div className="text-center">
           <button
             onClick={() => navigate("/")}
-            className="px-8 py-3 rounded-lg text-white font-semibold bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-200 active:scale-[0.98]"
+            className="btn-shine px-8 py-3 rounded-lg text-white font-semibold bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-200 active:scale-[0.98]"
           >
             Start a Quiz
           </button>

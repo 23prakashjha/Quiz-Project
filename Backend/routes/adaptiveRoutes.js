@@ -2,8 +2,9 @@ import express from "express";
 import AdaptiveSession from "../models/AdaptiveSession.js";
 import QuizAttempt from "../models/QuizAttempt.js";
 import Question from "../models/Question.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { protect, studentsOnly } from "../middleware/authMiddleware.js";
 import { generateQuestions, explainAnswer, analyzePerformance } from "../services/aiService.js";
+import { evaluateAttempt } from "../utils/certificate.js";
 
 const router = express.Router();
 
@@ -80,7 +81,7 @@ async function pickQuestion(session) {
 }
 
 // POST /api/quiz/adaptive/start — begin an adaptive session for a topic
-router.post("/start", protect, async (req, res) => {
+router.post("/start", protect, studentsOnly, async (req, res) => {
   try {
     const { topic, totalQuestions = 10 } = req.body;
     if (!topic) {
@@ -126,7 +127,7 @@ router.post("/start", protect, async (req, res) => {
 });
 
 // POST /api/quiz/adaptive/:id/answer — evaluate, adjust difficulty, serve next question
-router.post("/:id/answer", protect, async (req, res) => {
+router.post("/:id/answer", protect, studentsOnly, async (req, res) => {
   try {
     const { selectedAnswer } = req.body;
     const session = await AdaptiveSession.findById(req.params.id);
@@ -226,6 +227,7 @@ async function completeSession(session) {
   // Compute final tally from answered questions.
   const answered = session.questions.filter((q) => q.isCorrect !== null);
   const score = answered.filter((q) => q.isCorrect).length;
+  const { percentage, passed, certificateId } = evaluateAttempt(score, answered.length);
 
   session.completed = true;
   session.completedAt = new Date();
@@ -249,7 +251,9 @@ async function completeSession(session) {
     })),
     score,
     total: answered.length,
-    percentage: answered.length ? Math.round((score / answered.length) * 100) : 0,
+    percentage,
+    passed,
+    certificateId,
   });
 
   const history = await QuizAttempt.find({ userId: session.userId }).lean();
@@ -273,7 +277,7 @@ async function completeSession(session) {
 }
 
 // GET /api/quiz/adaptive/:id — resume/status (single active session shared state lives server-side)
-router.get("/:id", protect, async (req, res) => {
+router.get("/:id", protect, studentsOnly, async (req, res) => {
   try {
     const session = await AdaptiveSession.findById(req.params.id);
     if (!session) return res.status(404).json({ success: false, message: "Session not found." });

@@ -65,7 +65,7 @@ export default function Navbar({ onLogout, user }) {
                 onClick={() => { navigate(link.path); setMobileOpen(false); }}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive(link.path)
-                    ? "bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400"
+                    ? "bg-linear-to-r from-indigo-50 to-cyan-50 dark:from-indigo-900/50 dark:to-cyan-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm"
                     : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                 }`}
               >
@@ -98,7 +98,7 @@ export default function Navbar({ onLogout, user }) {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-200 dark:hover:bg-slate-700 transition-all duration-200 cursor-pointer"
                 >
-                  <div className="w-7 h-7 rounded-full bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-7 h-7 rounded-full bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold avatar-ring">
                     {user.name?.charAt(0).toUpperCase() || "U"}
                   </div>
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-200 max-w-[100px] truncate">

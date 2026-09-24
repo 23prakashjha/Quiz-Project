@@ -130,7 +130,7 @@ export default function QuizPage() {
   };
 
   const getOptionClass = (qIdx, optIdx) => {
-    const base = "flex items-center gap-3 w-full p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer text-left text-sm sm:text-base";
+    const base = "flex items-center gap-3 w-full p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer text-left text-sm sm:text-base hover:translate-x-1";
     if (answers[qIdx] === optIdx) {
       return `${base} border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 shadow-sm`;
     }
@@ -140,8 +140,11 @@ export default function QuizPage() {
   /* ---------- Difficulty setup screen ---------- */
   if (setup) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 py-8 transition-colors duration-300">
-        <div className="w-full max-w-2xl animate-slide-up">
+      <div className="relative overflow-hidden min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 py-8 transition-colors duration-300">
+        <div className="hero-grid absolute inset-0" />
+        <div className="aurora-blob b-indigo w-80 h-80 -top-24 -left-24" />
+        <div className="aurora-blob b-cyan w-72 h-72 -bottom-24 -right-20" style={{ animationDelay: "-10s" }} />
+        <div className="w-full max-w-2xl animate-slide-up relative z-10">
           <div className="text-center mb-8">
             <div className="text-5xl mb-3">🎯</div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
@@ -160,8 +163,8 @@ export default function QuizPage() {
                 className={`p-5 rounded-2xl border-2 text-left transition-all duration-200 group ${
                   difficulty === d.key
                     ? d.key === "adaptive"
-                      ? "border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/20 shadow-lg shadow-fuchsia-500/10"
-                      : "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 shadow-lg shadow-indigo-500/10"
+                      ? "border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/20 glow-fuchsia"
+                      : "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 glow-indigo"
                     : "border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600"
                 }`}
               >
@@ -190,7 +193,7 @@ export default function QuizPage() {
           <button
             onClick={startQuiz}
             disabled={loading}
-            className={`w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all shadow-lg disabled:opacity-60 active:scale-[0.98] ${
+            className={`btn-shine w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all shadow-lg disabled:opacity-60 active:scale-[0.98] ${
               difficulty === "adaptive"
                 ? "bg-linear-to-r from-fuchsia-600 to-violet-600 shadow-fuchsia-500/25"
                 : "bg-linear-to-r from-indigo-600 to-cyan-500 shadow-indigo-500/25"
@@ -213,8 +216,10 @@ export default function QuizPage() {
   /* ---------- Loading ---------- */
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950">
-        <div className="text-center animate-fade-in">
+      <div className="relative overflow-hidden min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950">
+        <div className="aurora-blob b-indigo w-80 h-80 -top-24 -left-24" />
+        <div className="aurora-blob b-cyan w-80 h-80 -bottom-24 -right-20" style={{ animationDelay: "-9s" }} />
+        <div className="text-center animate-fade-in relative z-10">
           <div className="w-12 h-12 mx-auto mb-4 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 rounded-full animate-spin" />
           <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Loading quiz questions...</p>
         </div>
@@ -225,8 +230,10 @@ export default function QuizPage() {
   /* ---------- Error ---------- */
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950 px-4">
-        <div className="text-center max-w-md animate-scale-in">
+      <div className="relative overflow-hidden min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950 px-4">
+        <div className="aurora-blob b-indigo w-80 h-80 -top-24 -left-24" />
+        <div className="aurora-blob b-fuchsia w-72 h-72 -bottom-20 -right-20" style={{ animationDelay: "-12s" }} />
+        <div className="text-center max-w-md animate-scale-in relative z-10">
           <div className="text-6xl mb-4">😕</div>
           <p className="text-red-500 dark:text-red-400 font-semibold text-lg mb-2">{error}</p>
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Try a different topic, difficulty, or come back later.</p>
@@ -245,7 +252,9 @@ export default function QuizPage() {
 
   /* ---------- Quiz ---------- */
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 transition-colors duration-300">
+    <div className="relative overflow-hidden min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 transition-colors duration-300">
+      <div className="aurora-blob b-indigo w-80 h-80 -top-24 -left-24" />
+      <div className="aurora-blob b-cyan w-72 h-72 bottom-0 -right-24" style={{ animationDelay: "-13s" }} />
       <div className="sticky top-16 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-slate-700">
         <div className="max-w-3xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
@@ -277,13 +286,13 @@ export default function QuizPage() {
               <span>{Math.round(progress)}%</span>
             </div>
             <div className="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div className="h-full bg-linear-to-r from-indigo-500 to-cyan-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
+              <div className="h-full progress-shine bg-linear-to-r from-indigo-500 to-cyan-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
+      <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8 relative z-10">
         <div className="animate-fade-in" key={currentQ}>
           <div className="flex flex-wrap gap-1.5 mb-6">
             {questions.map((_, i) => (
@@ -358,7 +367,7 @@ export default function QuizPage() {
             {currentQ < questions.length - 1 ? (
               <button
                 onClick={() => setCurrentQ(Math.min(questions.length - 1, currentQ + 1))}
-                className="px-4 sm:px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/25"
+                className="btn-shine px-4 sm:px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/25"
               >
                 Next →
               </button>
@@ -366,7 +375,7 @@ export default function QuizPage() {
               <button
                 onClick={submitQuiz}
                 disabled={submitting}
-                className="px-5 sm:px-6 py-2.5 rounded-xl text-sm font-semibold bg-linear-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-md shadow-emerald-500/25"
+                className="btn-shine px-5 sm:px-6 py-2.5 rounded-xl text-sm font-semibold bg-linear-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-md shadow-emerald-500/25"
               >
                 {submitting ? "Analyzing..." : "Submit & Analyze ✓"}
               </button>

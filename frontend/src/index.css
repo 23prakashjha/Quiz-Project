@@ -123,3 +123,156 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #4338ca;
 }
+
+/* ============ Premium design system ============ */
+
+/* Animated aurora blobs for page backgrounds */
+@keyframes blob-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -30px) scale(1.1); }
+  66% { transform: translate(-30px, 25px) scale(0.95); }
+}
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 0;
+  animation: blob-drift 22s ease-in-out infinite;
+}
+.aurora-blob.b-cyan { background: #22d3ee; }
+.aurora-blob.b-indigo { background: #818cf8; }
+.aurora-blob.b-fuchsia { background: #e879f9; }
+.aurora-blob.b-amber { background: #fcd34d; }
+.aurora-blob.b-emerald { background: #6ee7b7; }
+.dark .aurora-blob { opacity: 0.28; }
+
+/* Subtle perspective grid used in heroes */
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.07) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 20%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 20%, #000 30%, transparent 75%);
+}
+.dark .hero-grid {
+  background-image:
+    linear-gradient(rgba(129, 140, 248, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(129, 140, 248, 0.1) 1px, transparent 1px);
+}
+
+/* Slowly animating gradient text */
+.text-gradient-anim {
+  background-image: linear-gradient(120deg, #4f46e5, #06b6d4, #8b5cf6, #4f46e5);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-sweep 6s linear infinite;
+}
+@keyframes gradient-sweep {
+  to { background-position: 200% center; }
+}
+
+/* Shimmer sweep across primary buttons */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  bottom: -50%;
+  left: -60%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+.btn-shine:hover::after {
+  left: 130%;
+}
+
+/* Top accent gradient line that reveals on hover */
+.card-accent {
+  position: relative;
+}
+.card-accent::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 1.25rem;
+  right: 1.25rem;
+  height: 3px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(90deg, #4f46e5, #06b6d4, #a855f7);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.card-accent:hover::before {
+  opacity: 1;
+}
+
+/* Soft colored glows */
+.glow-indigo { box-shadow: 0 24px 60px -20px rgba(79, 70, 229, 0.35); }
+.glow-fuchsia { box-shadow: 0 24px 60px -20px rgba(217, 70, 239, 0.35); }
+.glow-emerald { box-shadow: 0 24px 60px -20px rgba(16, 185, 129, 0.35); }
+
+/* Gradient ring around avatars */
+.avatar-ring {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 0 4px rgba(99, 102, 241, 0.6);
+}
+.dark .avatar-ring {
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9), 0 0 0 4px rgba(99, 102, 241, 0.6);
+}
+
+/* Gradient progress bars keep moving */
+.progress-shine {
+  position: relative;
+  overflow: hidden;
+}
+.progress-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: translateX(-100%);
+  animation: progress-slide 2.2s ease-in-out infinite;
+}
+@keyframes progress-slide {
+  100% { transform: translateX(100%); }
+}
+
+/* Interactive option rows get a lift on hover */
+.option-lift {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+.option-lift:hover {
+  transform: translateX(6px);
+}
+
+/* Print only the certificate */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #quiz-certificate,
+  #quiz-certificate * {
+    visibility: visible;
+  }
+  #quiz-certificate {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+}
+

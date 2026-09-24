@@ -38,6 +38,12 @@ export default function AdminDashboard() {
   const [aiErr, setAiErr] = useState("");
   const [savingAi, setSavingAi] = useState(false);
 
+  // Edit question state
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ language: "", questionText: "", optionsText: "", correctAnswer: 0, difficulty: "easy", explanation: "" });
+  const [editErr, setEditErr] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -101,7 +107,50 @@ export default function AdminDashboard() {
     try {
       await axios.delete(`${API}/api/admin/questions/${id}`, HEADERS());
       setQuestions(questions.filter((q) => q._id !== id));
+      if (editingId === id) { setEditingId(null); setEditErr(""); }
     } catch { alert("Failed to delete."); }
+  };
+
+  const openEdit = (q) => {
+    setEditingId(q._id);
+    setEditErr("");
+    setEditForm({
+      language: q.language || "",
+      questionText: q.questionText || "",
+      optionsText: Array.isArray(q.options) ? q.options.join("\n") : "",
+      correctAnswer: typeof q.correctAnswer === "number" ? q.correctAnswer : 0,
+      difficulty: q.difficulty || "easy",
+      explanation: q.explanation || "",
+    });
+  };
+
+  const setEditOptionsCount = () => editForm.optionsText.split("\n").map((o) => o.trim()).filter(Boolean).length;
+
+  const handleSaveEdit = async (id) => {
+    setEditErr("");
+    const options = editForm.optionsText.split("\n").map((o) => o.trim()).filter(Boolean);
+    if (!editForm.questionText.trim()) { setEditErr("Question text is required."); return; }
+    if (options.length < 2) { setEditErr("Provide at least 2 options (one per line)."); return; }
+    if (editForm.correctAnswer < 0 || editForm.correctAnswer >= options.length) { setEditErr("Correct answer must match one of the options."); return; }
+    try {
+      setSavingEdit(true);
+      const payload = {
+        language: editForm.language.trim(),
+        questionText: editForm.questionText.trim(),
+        options,
+        correctAnswer: editForm.correctAnswer,
+        difficulty: editForm.difficulty,
+        explanation: editForm.explanation.trim(),
+      };
+      const res = await axios.put(`${API}/api/admin/questions/${id}`, payload, HEADERS());
+      setQuestions(questions.map((q) => (q._id === id ? res.data.data : q)));
+      setEditingId(null);
+      alert("Question updated!");
+    } catch (err) {
+      setEditErr(err.response?.data?.message || "Failed to update question.");
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const handleDeleteUser = async (id) => {
@@ -140,7 +189,7 @@ export default function AdminDashboard() {
     <button
       onClick={() => setTab(key)}
       className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-        tab === key ? "bg-indigo-600 text-white shadow-md" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+        tab === key ? "bg-linear-to-r from-indigo-600 to-cyan-500 text-white shadow-md" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
       }`}
     >
       {label}{count !== undefined ? ` (${count})` : ""}
@@ -148,12 +197,15 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-10">
+    <div className="relative overflow-hidden min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 transition-colors duration-300">
+      <div className="hero-grid absolute inset-0" />
+      <div className="aurora-blob b-indigo w-80 h-80 -top-24 -left-24" />
+      <div className="aurora-blob b-fuchsia w-72 h-72 top-1/3 -right-28" style={{ animationDelay: "-11s" }} />
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-6 sm:py-10">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 animate-fade-in">
           <div className="flex items-center gap-3">
-            <span className="text-4xl">📊</span>
+            <span className="inline-flex w-12 h-12 rounded-2xl bg-linear-to-br from-indigo-500 to-fuchsia-500 items-center justify-center text-2xl shadow-lg shadow-indigo-500/25">📚</span>
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">Teacher Dashboard</h1>
               <p className="text-gray-500 dark:text-gray-400 text-sm">Questions, learners, analytics & AI generation</p>
@@ -189,7 +241,7 @@ export default function AdminDashboard() {
                     { label: "Quizzes Taken", value: stats?.totalAttempts, emoji: "📝", grad: "from-cyan-500 to-sky-500" },
                     { label: "Avg Score", value: `${stats?.overallScore ?? 0}%`, emoji: "🎯", grad: "from-emerald-500 to-green-500" },
                   ].map((c, i) => (
-                    <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700 shadow-sm">
+                    <div key={i} className="card-accent bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700 shadow-sm">
                       <div className={`inline-flex w-10 h-10 rounded-xl bg-linear-to-br ${c.grad} items-center justify-center text-lg mb-3`}>{c.emoji}</div>
                       <p className="text-2xl font-extrabold text-gray-900 dark:text-white">{c.value}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{c.label}</p>
@@ -287,7 +339,7 @@ export default function AdminDashboard() {
         {/* ============ TAB: AI Generator ============ */}
         {tab === "ai" && (
           <div className="animate-fade-in space-y-6">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
+            <div className="card-accent glow-fuchsia bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
               <div className="flex items-center gap-3 mb-5">
                 <span className="text-3xl">🤖</span>
                 <div>
@@ -327,7 +379,7 @@ export default function AdminDashboard() {
                 <button
                   type="submit"
                   disabled={aiLoading}
-                  className="px-4 py-2.5 rounded-lg bg-linear-to-r from-fuchsia-600 to-violet-600 text-white text-sm font-bold hover:from-fuchsia-700 hover:to-violet-700 disabled:opacity-60 transition-all shadow-lg shadow-fuchsia-500/25"
+                  className="btn-shine px-4 py-2.5 rounded-lg bg-linear-to-r from-fuchsia-600 to-violet-600 text-white text-sm font-bold hover:from-fuchsia-700 hover:to-violet-700 disabled:opacity-60 transition-all shadow-lg shadow-fuchsia-500/25"
                 >
                   {aiLoading ? "Generating..." : "✦ Generate Questions"}
                 </button>
@@ -364,7 +416,7 @@ export default function AdminDashboard() {
                 <button
                   onClick={saveAiQuestions}
                   disabled={savingAi}
-                  className="w-full px-4 py-3 rounded-xl bg-linear-to-r from-emerald-500 to-green-600 text-white text-sm font-bold hover:from-emerald-600 hover:to-green-700 disabled:opacity-60 transition-all shadow-lg shadow-emerald-500/25"
+                  className="btn-shine w-full px-4 py-3 rounded-xl bg-linear-to-r from-emerald-500 to-green-600 text-white text-sm font-bold hover:from-emerald-600 hover:to-green-700 disabled:opacity-60 transition-all shadow-lg shadow-emerald-500/25"
                 >
                   {savingAi ? "Saving to Question Bank..." : `📥 Save ${aiQuestions.length} Question(s) to Bank`}
                 </button>
@@ -399,7 +451,92 @@ export default function AdminDashboard() {
                 <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-12">{searchQ ? "No matching questions." : "No questions yet."}</p>
               ) : (
                 <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-                  {filteredQuestions.map((q) => (
+                  {filteredQuestions.map((q) =>
+                    editingId === q._id ? (
+                      <div key={q._id} className="bg-white dark:bg-slate-700/50 border-2 border-indigo-300 dark:border-indigo-700 rounded-xl p-4 animate-slide-down shadow-lg shadow-indigo-500/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />Edit Question
+                          </h3>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="w-7 h-7 rounded-full bg-gray-100 dark:bg-slate-600 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-500 transition flex items-center justify-center text-xs"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        {editErr && (
+                          <p className="text-xs text-red-600 dark:text-red-400 mb-3 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-lg">{editErr}</p>
+                        )}
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            placeholder="Language (e.g. JavaScript)"
+                            value={editForm.language}
+                            onChange={(e) => setEditForm({ ...editForm, language: e.target.value })}
+                            className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40"
+                          />
+                          <textarea
+                            placeholder="Question text"
+                            rows={2}
+                            value={editForm.questionText}
+                            onChange={(e) => setEditForm({ ...editForm, questionText: e.target.value })}
+                            className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 resize-y"
+                          />
+                          <div className="grid sm:grid-cols-2 gap-3">
+                            <textarea
+                              placeholder={"Options — one per line:\nReact\nVue\nAngular\nSvelte"}
+                              rows={4}
+                              value={editForm.optionsText}
+                              onChange={(e) => setEditForm({ ...editForm, optionsText: e.target.value, correctAnswer: Math.min(editForm.correctAnswer, Math.max(0, e.target.value.split("\n").map((o) => o.trim()).filter(Boolean).length - 1)) })}
+                              className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 resize-y"
+                            />
+                            <div className="space-y-3">
+                              <select
+                                value={editForm.correctAnswer}
+                                onChange={(e) => setEditForm({ ...editForm, correctAnswer: Number(e.target.value) })}
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40"
+                              >
+                                {Array.from({ length: Math.max(setEditOptionsCount(), 2) }, (_, i) => (
+                                  <option key={i} value={i}>Correct: {String.fromCharCode(65 + i)}</option>
+                                ))}
+                              </select>
+                              <select
+                                value={editForm.difficulty}
+                                onChange={(e) => setEditForm({ ...editForm, difficulty: e.target.value })}
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40"
+                              >
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                              </select>
+                              <textarea
+                                placeholder="Explanation (shown after answering)"
+                                rows={2}
+                                value={editForm.explanation}
+                                onChange={(e) => setEditForm({ ...editForm, explanation: e.target.value })}
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 resize-y"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                          <button
+                            onClick={() => handleSaveEdit(q._id)}
+                            disabled={savingEdit}
+                            className="btn-shine px-5 py-2 rounded-lg bg-linear-to-r from-emerald-500 to-green-600 text-white text-sm font-semibold hover:from-emerald-600 hover:to-green-700 disabled:opacity-60 transition-all shadow-md shadow-emerald-500/25"
+                          >
+                            {savingEdit ? "Saving..." : "💾 Save Changes"}
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="px-5 py-2 rounded-lg bg-gray-100 dark:bg-slate-600 text-gray-600 dark:text-gray-300 text-sm font-semibold hover:bg-gray-200 dark:hover:bg-slate-500 transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
                     <div key={q._id} className="flex items-start gap-3 bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-xl p-4 group hover:shadow-md transition-all">
                       <span className={`shrink-0 w-1.5 h-full min-h-[60px] rounded-full bg-linear-to-b ${getLangGrad(q.language)}`} />
                       <div className="flex-1 min-w-0">
@@ -417,12 +554,22 @@ export default function AdminDashboard() {
                             </div>
                             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 leading-relaxed">{q.questionText}</p>
                           </div>
-                          <button
-                            onClick={() => handleDeleteQuestion(q._id)}
-                            className="shrink-0 w-7 h-7 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 hover:bg-red-200 dark:hover:bg-red-900/50 transition flex items-center justify-center text-xs opacity-0 group-hover:opacity-100"
-                          >
-                            ✕
-                          </button>
+                          <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => openEdit(q)}
+                              className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-500 hover:bg-indigo-200 dark:hover:bg-indigo-900/60 transition flex items-center justify-center text-xs"
+                              title="Edit question"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={() => handleDeleteQuestion(q._id)}
+                              className="w-7 h-7 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 hover:bg-red-200 dark:hover:bg-red-900/50 transition flex items-center justify-center text-xs"
+                              title="Delete question"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
                         <div className="flex flex-wrap gap-1.5 mt-2">
                           {q.options.map((opt, i) => (
@@ -437,7 +584,8 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    )
+                  )}
                 </div>
               )}
             </div>

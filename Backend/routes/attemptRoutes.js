@@ -1,12 +1,13 @@
 import express from "express";
 import QuizAttempt from "../models/QuizAttempt.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { protect, studentsOnly } from "../middleware/authMiddleware.js";
 import { analyzePerformance } from "../services/aiService.js";
+import { evaluateAttempt } from "../utils/certificate.js";
 
 const router = express.Router();
 
 // POST /api/attempts — save a completed quiz + return AI analysis
-router.post("/", protect, async (req, res) => {
+router.post("/", protect, studentsOnly, async (req, res) => {
   try {
     const {
       topic,
@@ -43,7 +44,7 @@ router.post("/", protect, async (req, res) => {
 
     const score = evaluated.filter((q) => q.isCorrect).length;
     const total = evaluated.length;
-    const percentage = Math.round((score / total) * 100);
+    const { percentage, passed, certificateId } = evaluateAttempt(score, total);
 
     const attempt = await QuizAttempt.create({
       userId: req.user._id,
@@ -54,6 +55,8 @@ router.post("/", protect, async (req, res) => {
       score,
       total,
       percentage,
+      passed,
+      certificateId,
       timeTakenSec,
     });
 
