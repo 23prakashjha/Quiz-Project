@@ -5,6 +5,9 @@ import connectDB from "./config/db.js";
 import quizRoutes from "./routes/quizRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import attemptRoutes from "./routes/attemptRoutes.js";
+import adaptiveRoutes from "./routes/adaptiveRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
 
 dotenv.config();
 
@@ -34,10 +37,13 @@ app.use(
 if (authRoutes) app.use("/api/auth", authRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/attempts", attemptRoutes);
+app.use("/api/quiz/adaptive", adaptiveRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Root route
 app.get("/", (req, res) => {
-  res.send("✅ Quiz API is running...");
+  res.send("✅ QuizVerse AI API is running...");
 });
 
 // 404 handler for unmatched routes

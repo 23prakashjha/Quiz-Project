@@ -1,21 +1,41 @@
 import express from "express";
 import Question from "../models/Question.js";
+import { generateQuestions } from "../services/aiService.js";
 
 const router = express.Router();
 
 /**
  * ✅ GET /api/quiz
  * Fetch questions by language (topic removed)
+ * Supports ?difficulty=easy|medium|hard and ?generate=1 (on-the-fly AI fallback when DB is empty)
  */
 router.get("/", async (req, res) => {
   try {
-    const { language } = req.query;
+    const { language, difficulty, generate } = req.query;
     const filter = {};
 
     if (language)
       filter.language = { $regex: `^${language.trim()}$`, $options: "i" };
+    if (difficulty && ["easy", "medium", "hard"].includes(difficulty))
+      filter.difficulty = difficulty;
 
     const questions = await Question.find(filter).lean();
+
+    // If the bank has nothing and generation is requested (or DB is empty),
+    // produce questions with the AI/mock engine so the demo always works.
+    if (!questions.length && (generate === "1" || generate === "true")) {
+      const generated = await generateQuestions({
+        topic: language || "JavaScript",
+        difficulty: difficulty || "easy",
+        count: 5,
+      });
+      return res.status(200).json({
+        success: true,
+        source: "ai",
+        count: generated.length,
+        data: generated,
+      });
+    }
 
     if (!questions.length) {
       return res.status(404).json({
@@ -26,6 +46,7 @@ router.get("/", async (req, res) => {
 
     res.status(200).json({
       success: true,
+      source: "db",
       count: questions.length,
       data: questions,
     });
@@ -45,7 +66,7 @@ router.get("/", async (req, res) => {
  */
 router.post("/add", async (req, res) => {
   try {
-    const { language, questionText, options, correctAnswer } = req.body;
+    const { language, questionText, options, correctAnswer, difficulty, explanation } = req.body;
 
     if (
       !language ||
@@ -66,6 +87,8 @@ router.post("/add", async (req, res) => {
       questionText: questionText.trim(),
       options,
       correctAnswer,
+      difficulty: ["easy", "medium", "hard"].includes(difficulty) ? difficulty : "easy",
+      explanation: explanation || "",
     });
 
     res.status(201).json({
@@ -120,6 +143,9 @@ router.post("/add-multiple", async (req, res) => {
       ...q,
       language: q.language.trim().toLowerCase(),
       questionText: q.questionText.trim(),
+      difficulty: ["easy", "medium", "hard"].includes(q.difficulty) ? q.difficulty : "easy",
+      explanation: q.explanation || "",
+      aiGenerated: Boolean(q.aiGenerated),
     }));
 
     const inserted = await Question.insertMany(formatted);

@@ -38,6 +38,9 @@ export default function Navbar({ onLogout, user }) {
 
   const navLinks = [
     { path: "/", label: "Home", icon: "🏠" },
+    ...(user && user.role !== "admin"
+      ? [{ path: "/dashboard", label: "Analytics", icon: "📊" }]
+      : []),
     { path: "/about", label: "About", icon: "ℹ️" },
     { path: "/contact", label: "Contact", icon: "📬" },
   ];
@@ -50,7 +53,7 @@ export default function Navbar({ onLogout, user }) {
           <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate("/")}>
             <span className="text-2xl">🧠</span>
             <span className="text-xl font-extrabold bg-linear-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:to-cyan-400 transition-all">
-              QuizVerse
+              QuizVerse <span className="text-fuchsia-500 dark:text-fuchsia-400">AI</span>
             </span>
           </div>
 

@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { API, authHeaders } from "../api.js";
 
 const TOPICS = [
   { name: "HTML", icon: "🌐", gradient: "linear-gradient(135deg, #f97316, #ef4444)", desc: "Structure the web" },
@@ -36,17 +38,28 @@ const TOPICS = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState("");
-  const [search, setSearch] = useState("");
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
+  const [userName] = useState(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const user = JSON.parse(storedUser);
-      setUserName(user.name || user.email || "User");
+      return user.name || user.email || "User";
     }
+    return "";
+  });
+  const [search, setSearch] = useState("");
+  const [visible, setVisible] = useState(false);
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
     setTimeout(() => setVisible(true), 100);
+
+    // Personalized recommendations from the analytics engine
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios.get(`${API}/api/attempts/stats`, authHeaders())
+        .then((res) => setStats(res.data.data))
+        .catch(() => {});
+    }
   }, []);
 
   const filtered = useMemo(() => {
@@ -61,13 +74,16 @@ export default function Home() {
     navigate(`/quiz/${topic.toLowerCase()}`);
   };
 
+  const weakTopics = stats?.analysis?.weaknesses || [];
+  const recommended = stats?.analysis?.suggestedTopics || [];
+
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4 sm:px-6 lg:px-8 py-8 sm:py-12 transition-colors duration-300">
       {/* Hero Section */}
       <div className={`text-center mb-8 sm:mb-12 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm font-medium mb-4">
           <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-          30+ Topics to Explore
+          {stats ? `${stats.totalAttempts} quizzes · ${stats.overallScore}% avg` : "30+ Topics to Explore"}
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">
           Welcome back,{" "}
@@ -77,11 +93,42 @@ export default function Home() {
           <span className="inline-block animate-float">👋</span>
         </h1>
         <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-          Challenge yourself with interactive quizzes across{" "}
-          <span className="font-semibold text-indigo-600 dark:text-indigo-400">30+ technologies</span>.
-          Master the code, one quiz at a time.
+          Master <span className="font-semibold text-indigo-600 dark:text-indigo-400">30+ technologies</span> with
+          AI-powered quizzes that <span className="font-semibold text-fuchsia-600 dark:text-fuchsia-400">adapt to your skill level</span>.
         </p>
       </div>
+
+      {/* AI Recommended for you */}
+      {weakTopics.length > 0 && (
+        <div className={`max-w-4xl mx-auto mb-8 transition-all duration-700 delay-50 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+          <div className="rounded-2xl bg-linear-to-r from-fuchsia-600 to-violet-600 p-[1.5px] shadow-lg shadow-fuchsia-500/10 animate-fade-in">
+            <div className="rounded-[15px] bg-white dark:bg-slate-800 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xl">🤖</span>
+                <h2 className="font-bold text-gray-900 dark:text-white">Recommended for you</h2>
+                <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">based on your history</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {recommended.slice(0, 5).map((t, i) => (
+                  <button
+                    key={i}
+                    onClick={() => navigate(`/quiz/adaptive/${encodeURIComponent(t.toLowerCase())}`)}
+                    className="px-4 py-2 rounded-full bg-fuchsia-100 dark:bg-fuchsia-900/40 text-fuchsia-700 dark:text-fuchsia-300 text-sm font-semibold hover:bg-fuchsia-200 dark:hover:bg-fuchsia-900/60 transition-all"
+                  >
+                    ✨ Practice {t.charAt(0).toUpperCase() + t.slice(1)} →
+                  </button>
+                ))}
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="px-4 py-2 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 text-sm font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition-all"
+                >
+                  📊 View analytics
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className={`max-w-xl mx-auto mb-8 sm:mb-12 transition-all duration-700 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
@@ -139,9 +186,14 @@ export default function Home() {
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-2xl sm:text-3xl">{topic.icon}</span>
-                <span className="text-2xl sm:text-3xl opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0 translate-x-2">
-                  →
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    ⚡ Adaptive
+                  </span>
+                  <span className="text-2xl sm:text-3xl opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0 translate-x-2">
+                    →
+                  </span>
+                </div>
               </div>
               <h2 className="text-lg sm:text-xl font-bold drop-shadow-lg mb-1">
                 {topic.name}
@@ -174,7 +226,7 @@ export default function Home() {
           </div>
         </div>
         <p className="mt-6 text-xs sm:text-sm text-gray-400 dark:text-gray-500">
-          © {new Date().getFullYear()} QuizVerse — Master the Code, One Quiz at a Time 🧠
+          © {new Date().getFullYear()} QuizVerse AI — Learn, Practice, Master 🧠
         </p>
       </div>
     </div>

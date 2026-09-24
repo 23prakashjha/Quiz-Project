@@ -1,6 +1,6 @@
-# 🧠 QuizVerse — Master the Code, One Quiz at a Time
+# 🤖 QuizVerse AI — Intelligent Learning & Assessment Platform
 
-A full-stack MERN quiz application with 30+ programming topics, JWT authentication, dark mode, and an admin panel for managing questions.
+A full-stack MERN platform that doesn't just conduct quizzes — it **analyzes performance with AI** and delivers personalized learning recommendations and **adaptive quizzes** that adjust difficulty to each student in real time.
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
@@ -11,21 +11,31 @@ A full-stack MERN quiz application with 30+ programming topics, JWT authenticati
 
 ## ✨ Features
 
-- **30+ Quiz Topics** — HTML, CSS, JavaScript, React, Python, Java, Git, Docker, and more
-- **User Authentication** — Register / Login with JWT-based auth
-- **Dark Mode** — Toggle between light and dark themes (persisted in localStorage)
-- **Responsive Design** — Fully mobile-optimized UI with TailwindCSS
-- **Animated Progress** — Real-time progress bar, timer, and circular score indicator
-- **Confetti Effect** — Celebrate your results with animated confetti
-- **Admin Panel** — Add questions individually, in bulk (JSON), or manage pending lists
-- **Search Topics** — Quickly filter topics by name or description
-- **Timer** — 1 min per question countdown with auto-submit
-- **Result Sharing** — Share your score via Web Share API or clipboard copy
+### 🤖 AI Module (the differentiator)
+- **AI question generation** — admin enters `Topic + Difficulty + Count` → OpenAI (or the built-in engine) writes fresh questions
+- **AI answer explanations** — a student who gets a question wrong gets a "why your answer is wrong" explanation
+- **AI performance report** — after each quiz, an AI report highlights strengths, weaknesses, and next steps
+- **Personalized recommendations** — weak topics drive suggested adaptive quizzes on the dashboard & home page
+
+### ⚡ Adaptive Quiz Engine
+Instead of a fixed test, difficulty **adjusts after every answer**:
+- ✅ Correct twice in a row → difficulty goes **up**
+- ❌ Wrong → difficulty goes **down** + an AI concept explanation is shown
+- The session ends by generating an attempt + AI report automatically
+
+### 👨‍🎓 Student Module
+Register/login · select topic & difficulty · attempt classic or adaptive quizzes · view AI report · review answers · track progress & weak topics · get recommended quizzes
+
+### 👨‍🏫 Admin/Teacher Module
+AI question generator · create/edit/delete questions · manage users · platform statistics (attempts per topic, top students, recent activity)
+
+### Core
+- 30+ quiz topics · JWT auth · dark mode · responsive Tailwind UI · animated progress · confetti results · timer · result sharing
 
 ## 🚀 Live Demo
 
 **Frontend:** [https://quiz-frontend-latest.netlify.app](https://quiz-frontend-latest.netlify.app)  
-**Backend API:** [https://quiz-project-yx56.onrender.com](https://quiz-project-yx56.onrender.com)
+**Backend API:** [https://quiz-project-aqu6.onrender.com](https://quiz-project-aqu6.onrender.com)
 
 ## 🛠️ Tech Stack
 
@@ -45,49 +55,50 @@ A full-stack MERN quiz application with 30+ programming topics, JWT authenticati
 | Mongoose | 8.8 |
 | bcryptjs | 2.4 |
 | jsonwebtoken | 9.0 |
-| multer | 2.0 |
-| pdf-parse | 2.4 |
+
+### 🤖 AI
+| Provider | Notes |
+|---------|-------|
+| OpenAI (optional) | `OPENAI_API_KEY` in `Backend/.env` → GPT question generation, explanations & reports |
+| Built-in mock engine | No key needed — deterministic question bank + rule-based analysis keeps the app fully functional offline |
 
 ## 📁 Project Structure
 
 ```
 Quiz-Project/
 ├── Backend/
-│   ├── config/
-│   │   └── db.js              # MongoDB connection
-│   ├── controllers/
-│   │   └── quizController.js   # PDF parsing & legacy quiz logic
-│   ├── middleware/
-│   │   └── authMiddleware.js   # JWT auth middleware
+│   ├── config/db.js                # MongoDB connection
+│   ├── middleware/authMiddleware.js# JWT auth middleware
 │   ├── models/
-│   │   ├── Question.js         # Question schema (current)
-│   │   ├── Quiz.js             # Quiz schema (legacy)
-│   │   └── User.js             # User schema with bcrypt
+│   │   ├── Question.js             # Question schema (difficulty + explanation)
+│   │   ├── QuizAttempt.js          # Saved attempts + learning history
+│   │   ├── AdaptiveSession.js      # Active adaptive quiz sessions
+│   │   └── User.js                 # User schema with bcrypt & roles
 │   ├── routes/
-│   │   ├── authRoutes.js       # /api/auth (register/login)
-│   │   └── quizRoutes.js       # /api/quiz (CRUD questions)
-│   ├── utils/
-│   │   └── generateToken.js    # JWT token helper
-│   ├── server.js               # Express entry point
-│   └── package.json
+│   │   ├── authRoutes.js           # /api/auth
+│   │   ├── quizRoutes.js           # /api/quiz
+│   │   ├── attemptRoutes.js        # /api/attempts
+│   │   ├── adaptiveRoutes.js       # /api/quiz/adaptive
+│   │   ├── aiRoutes.js             # /api/ai
+│   │   └── adminRoutes.js          # /api/admin
+│   ├── services/aiService.js       # OpenAI + mock AI engine
+│   ├── utils/generateToken.js
+│   └── server.js
 │
 ├── frontend/
-│   ├── public/
 │   ├── src/
+│   │   ├── api.js                  # Central API config
 │   │   ├── components/
-│   │   │   ├── Navbar.jsx       # Responsive nav + dark mode toggle
-│   │   │   └── AdminPanel.jsx   # Question management dashboard
-│   │   ├── pages/
-│   │   │   ├── Home.jsx         # Topic grid with search
-│   │   │   ├── Login.jsx        # Sign in page
-│   │   │   ├── Register.jsx     # Sign up page
-│   │   │   ├── QuizPage.jsx     # Quiz taking with timer
-│   │   │   └── ResultPage.jsx   # Score with confetti
-│   │   ├── App.jsx              # Router & auth state
-│   │   ├── index.css            # Tailwind + custom animations
-│   │   └── main.jsx             # React entry
-│   ├── index.html
-│   ├── vite.config.js
+│   │   │   ├── Navbar.jsx
+│   │   │   └── AdminPanel.jsx
+│   │   └── pages/
+│   │       ├── Home.jsx            # Topic grid + AI recommendations
+│   │       ├── QuizPage.jsx        # Classic quiz (difficulty setup)
+│   │       ├── AdaptiveQuizPage.jsx# ✨ Adaptive engine UI
+│   │       ├── ResultPage.jsx      # AI report + answer review
+│   │       ├── Dashboard.jsx       # 📊 Student analytics
+│   │       ├── AdminDashboard.jsx  # Teacher: questions/users/stats/AI
+│   │       └── ...
 │   └── package.json
 ```
 
@@ -97,22 +108,29 @@ Quiz-Project/
 |--------|----------|-------------|------|
 | POST | `/api/auth/register` | Register new user | No |
 | POST | `/api/auth/login` | Login user | No |
-| GET | `/api/quiz?language=html` | Fetch questions by language | No |
-| POST | `/api/quiz/add` | Add single question | No |
-| POST | `/api/quiz/add-multiple` | Add multiple questions | Bearer |
+| GET | `/api/quiz?language=react&difficulty=easy&generate=1` | Fetch questions (AI fallback when bank empty) | No |
+| POST | `/api/quiz/add` · `/add-multiple` | Add single / bulk questions | Bearer |
+| POST | `/api/attempts` | Save attempt → returns AI analysis | Bearer |
+| GET | `/api/attempts` | Student learning history | Bearer |
+| GET | `/api/attempts/stats` | Per-topic analytics + recommendations | Bearer |
+| POST | `/api/quiz/adaptive/start` | Start adaptive session | Bearer |
+| POST | `/api/quiz/adaptive/:id/answer` | Answer → server adjusts difficulty | Bearer |
+| GET | `/api/quiz/adaptive/:id` | Session status | Bearer |
+| POST | `/api/ai/generate-questions` | AI question generation | Admin |
+| POST | `/api/ai/explain` | "Why was my answer wrong?" | Bearer |
+| POST | `/api/ai/analyze` | Personalized study report | Bearer |
+| GET | `/api/admin/stats` | Platform quiz statistics | Admin |
 
 ### Question Schema
 ```json
 {
-  "language": "html",
-  "questionText": "What does HTML stand for?",
-  "options": [
-    "Hyper Text Markup Language",
-    "High Tech Modern Language",
-    "Home Tool Markup Language",
-    "Hyper Transfer Markup Language"
-  ],
-  "correctAnswer": 0
+  "language": "react",
+  "questionText": "How do you prevent a child component from re-rendering?",
+  "options": ["React.memo", "useState", "useContext", "render-prop"],
+  "correctAnswer": 0,
+  "difficulty": "easy",
+  "explanation": "React.memo wraps the component and performs a shallow prop comparison.",
+  "aiGenerated": false
 }
 ```
 
@@ -127,10 +145,9 @@ Quiz-Project/
 cd Backend
 npm install
 
-# Create .env file
-echo "MONGO_URI=your_mongodb_uri" >> .env
-echo "JWT_SECRET=your_secret_key" >> .env
-echo "PORT=5000" >> .env
+# Create .env file (see Backend/.env.example)
+# MONGO_URI, JWT_SECRET, PORT
+# Optional AI: OPENAI_API_KEY=sk-...  (falls back to the mock engine if empty)
 
 npm run dev
 ```
@@ -139,6 +156,10 @@ npm run dev
 ```bash
 cd frontend
 npm install
+
+# Optional: create frontend/.env
+# VITE_API_URL=http://localhost:5000   (defaults to the deployed API)
+
 npm run dev
 ```
 
@@ -149,11 +170,10 @@ The frontend runs on `http://localhost:5173` and the backend on `http://localhos
 - **Glassmorphism cards** with backdrop blur
 - **Animated gradient borders** on interactive elements
 - **Smooth page transitions** via custom `fade-in`, `slide-up`, `scale-in` animations
-- **Floating emoji** in hero section
 - **Progress ring** with animated stroke-dashoffset
 - **Confetti explosion** on quiz completion
-- **Shimmer loading** states for async operations
-- **Custom scrollbar** matching the indigo theme
+- **Custom Tailwind charts** — lightweight progress bars & stat cards (no chart library)
+- **Shimmer/loading states** for async operations
 - **Fully responsive** grid that adapts from 1 to 4 columns
 
 ## 🌙 Dark Mode
@@ -162,13 +182,7 @@ Toggle dark mode via the sun/moon icon in the navbar. The preference is saved to
 
 ## 🤝 Contributing
 
-PRs are welcome! Feel free to add new quiz topics, improve animations, or fix bugs.
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push (`git push origin feature/amazing`)
-5. Open a Pull Request
+PRs are welcome! Feel free to add AI topics, extend the adaptive engine, or improve analytics.
 
 ## 📄 License
 

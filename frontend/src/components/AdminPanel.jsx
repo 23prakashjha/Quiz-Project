@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const API = "https://quiz-project-aqu6.onrender.com";
+import { API } from "../api.js";
 
 const LANGUAGES = [
   "HTML", "CSS", "JavaScript", "React", "TailwindCSS", "Node.js",
@@ -11,7 +10,7 @@ const LANGUAGES = [
   "Next.js", "Redux", "Docker", "Firebase", "AWS", "PHP", "Other",
 ];
 
-export default function AdminPanel({ user, isAuthenticated, onLoginSuccess }) {
+export default function AdminPanel({ user, isAuthenticated }) {
   const navigate = useNavigate();
 
   const [language, setLanguage] = useState("HTML");

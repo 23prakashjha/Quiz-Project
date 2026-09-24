@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const API = "https://quiz-project-aqu6.onrender.com";
+import { API } from "../api.js";
 
 export default function Register({ onLoginSuccess }) {
   const [name, setName] = useState("");
@@ -49,7 +48,7 @@ export default function Register({ onLoginSuccess }) {
         <div className="text-center mb-8">
           <span className="text-5xl">🧠</span>
           <h1 className="text-2xl font-extrabold bg-linear-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent mt-2">
-            QuizVerse
+            QuizVerse <span className="text-fuchsia-500 dark:text-fuchsia-400">AI</span>
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{role === "admin" ? "Create an admin account to manage quizzes" : "Create your account and start learning"}</p>
         </div>

@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API, authHeaders } from "../api.js";
 
-const API = "https://quiz-project-aqu6.onrender.com";
-
-const HEADERS = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
+const HEADERS = authHeaders;
 
 const LANG_COLORS = {
   html: "from-orange-400 to-red-500", css: "from-blue-400 to-indigo-500",
@@ -22,6 +21,7 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState("questions");
   const [questions, setQuestions] = useState([]);
   const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQ, setSearchQ] = useState("");
 
@@ -31,15 +31,25 @@ export default function AdminDashboard() {
   const [formErr, setFormErr] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
+  // AI generator
+  const [aiForm, setAiForm] = useState({ topic: "JavaScript", difficulty: "medium", count: 5 });
+  const [aiQuestions, setAiQuestions] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiErr, setAiErr] = useState("");
+  const [savingAi, setSavingAi] = useState(false);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       if (tab === "questions") {
         const res = await axios.get(`${API}/api/admin/questions`, HEADERS());
         setQuestions(res.data.data || []);
-      } else {
+      } else if (tab === "users") {
         const res = await axios.get(`${API}/api/admin/users`, HEADERS());
         setUsers(res.data.data || []);
+      } else if (tab === "analytics") {
+        const res = await axios.get(`${API}/api/admin/stats`, HEADERS());
+        setStats(res.data.data);
       }
     } catch (err) {
       if (err.response?.status === 403 || err.response?.status === 401) navigate("/login");
@@ -50,6 +60,41 @@ export default function AdminDashboard() {
   }, [tab, navigate]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  /* ---------- AI question generator ---------- */
+  const generateQuestions = async (e) => {
+    e?.preventDefault();
+    setAiErr("");
+    if (!aiForm.topic) { setAiErr("Enter a topic."); return; }
+    try {
+      setAiLoading(true);
+      const res = await axios.post(`${API}/api/ai/generate-questions`, aiForm, HEADERS());
+      setAiQuestions(res.data.data || []);
+    } catch (err) {
+      setAiErr(err.response?.data?.message || "AI generation failed.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const saveAiQuestions = async () => {
+    if (!aiQuestions.length) return;
+    try {
+      setSavingAi(true);
+      const payload = aiQuestions.map((q) => ({
+        ...q,
+        language: aiForm.topic,
+        aiGenerated: true,
+      }));
+      const res = await axios.post(`${API}/api/quiz/add-multiple`, { questions: payload }, HEADERS());
+      alert(`${res.data.count} AI question(s) saved to the Question Bank!`);
+      setAiQuestions([]);
+    } catch {
+      alert("Failed to save AI questions.");
+    } finally {
+      setSavingAi(false);
+    }
+  };
 
   const handleDeleteQuestion = async (id) => {
     if (!confirm("Delete this question?")) return;
@@ -70,12 +115,8 @@ export default function AdminDashboard() {
   const handleCreateUser = async (e) => {
     e.preventDefault();
     setFormErr("");
-    if (!form.name || !form.email || !form.password) {
-      setFormErr("All fields required."); return;
-    }
-    if (form.password.length < 6) {
-      setFormErr("Password must be at least 6 characters."); return;
-    }
+    if (!form.name || !form.email || !form.password) { setFormErr("All fields required."); return; }
+    if (form.password.length < 6) { setFormErr("Password must be at least 6 characters."); return; }
     try {
       setFormLoading(true);
       const res = await axios.post(`${API}/api/admin/users`, form, HEADERS());
@@ -95,6 +136,17 @@ export default function AdminDashboard() {
     q.questionText?.toLowerCase().includes(searchQ.toLowerCase())
   );
 
+  const tabBtn = (key, label, count) => (
+    <button
+      onClick={() => setTab(key)}
+      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+        tab === key ? "bg-indigo-600 text-white shadow-md" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+      }`}
+    >
+      {label}{count !== undefined ? ` (${count})` : ""}
+    </button>
+  );
+
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-10">
@@ -103,8 +155,8 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-3">
             <span className="text-4xl">📊</span>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">Admin Dashboard</h1>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">Manage questions and users</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">Teacher Dashboard</h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Questions, learners, analytics & AI generation</p>
             </div>
           </div>
           <button
@@ -116,30 +168,212 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="flex bg-white dark:bg-slate-800 rounded-xl p-1 border border-gray-200 dark:border-slate-700 mb-6 shadow-sm">
-          <button
-            onClick={() => setTab("questions")}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-              tab === "questions"
-                ? "bg-indigo-600 text-white shadow-md"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            }`}
-          >
-            📝 Questions ({questions.length})
-          </button>
-          <button
-            onClick={() => setTab("users")}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-              tab === "users"
-                ? "bg-indigo-600 text-white shadow-md"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            }`}
-          >
-            👥 Users ({users.length})
-          </button>
+        <div className="flex bg-white dark:bg-slate-800 rounded-xl p-1 border border-gray-200 dark:border-slate-700 mb-6 shadow-sm flex-wrap">
+          {tabBtn("questions", "📝 Questions", questions.length)}
+          {tabBtn("users", "👥 Users", users.length)}
+          {tabBtn("analytics", "📈 Analytics")}
+          {tabBtn("ai", "🤖 AI Generator")}
         </div>
 
-        {/* Tab: Questions */}
+        {/* ============ TAB: Analytics ============ */}
+        {tab === "analytics" && (
+          <div className="animate-fade-in space-y-6">
+            {loading ? (
+              <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 rounded-full animate-spin" /></div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { label: "Students", value: stats?.totalUsers, emoji: "👥", grad: "from-blue-500 to-indigo-500" },
+                    { label: "Question Bank", value: stats?.totalQuestions, emoji: "📚", grad: "from-indigo-500 to-purple-500" },
+                    { label: "Quizzes Taken", value: stats?.totalAttempts, emoji: "📝", grad: "from-cyan-500 to-sky-500" },
+                    { label: "Avg Score", value: `${stats?.overallScore ?? 0}%`, emoji: "🎯", grad: "from-emerald-500 to-green-500" },
+                  ].map((c, i) => (
+                    <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700 shadow-sm">
+                      <div className={`inline-flex w-10 h-10 rounded-xl bg-linear-to-br ${c.grad} items-center justify-center text-lg mb-3`}>{c.emoji}</div>
+                      <p className="text-2xl font-extrabold text-gray-900 dark:text-white">{c.value}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{c.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-5">Attempts by Topic</h2>
+                    {(stats?.topics || []).length === 0 ? (
+                      <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">No attempts recorded yet.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {stats.topics.map((t) => (
+                          <div key={t.topic}>
+                            <div className="flex items-center justify-between mb-1 text-sm">
+                              <span className="font-medium text-gray-700 dark:text-gray-200 capitalize">{t.topic}</span>
+                              <span className="text-gray-500 dark:text-gray-400 text-xs">{t.count} attempt(s) · {t.avgScore}% avg</span>
+                            </div>
+                            <div className="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                              <div className={`h-full rounded-full bg-linear-to-r ${getLangGrad(t.topic)} transition-all duration-700`} style={{ width: `${Math.max(t.avgScore, 4)}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Top Students</h2>
+                    {(stats?.bestUsers || []).length === 0 ? (
+                      <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-6">No student data yet.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {stats.bestUsers.map((u, i) => (
+                          <div key={i} className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-full bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                              {(u.name || "U").charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{u.name}</p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{u.attempts} quizzes</p>
+                            </div>
+                            <span className={`text-sm font-bold ${u.avgScore >= 70 ? "text-emerald-600 dark:text-emerald-400" : "text-gray-500 dark:text-gray-400"}`}>
+                              {u.avgScore}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
+                  {(stats?.recentAttempts || []).length === 0 ? (
+                    <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-6">No recent attempts.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-200 dark:border-slate-600">
+                            <th className="text-left py-2.5 px-2 text-gray-500 dark:text-gray-400 font-medium">Student</th>
+                            <th className="text-left py-2.5 px-2 text-gray-500 dark:text-gray-400 font-medium">Topic</th>
+                            <th className="text-left py-2.5 px-2 text-gray-500 dark:text-gray-400 font-medium">Mode</th>
+                            <th className="text-left py-2.5 px-2 text-gray-500 dark:text-gray-400 font-medium">Score</th>
+                            <th className="text-right py-2.5 px-2 text-gray-500 dark:text-gray-400 font-medium">When</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats.recentAttempts.map((a) => (
+                            <tr key={a.id} className="border-b border-gray-100 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition">
+                              <td className="py-3 px-2 font-medium text-gray-800 dark:text-gray-100">{a.name}</td>
+                              <td className="py-3 px-2 text-gray-600 dark:text-gray-300 capitalize">{a.topic}</td>
+                              <td className="py-3 px-2">
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${a.mode === "adaptive" ? "bg-fuchsia-100 dark:bg-fuchsia-900/40 text-fuchsia-600 dark:text-fuchsia-300" : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"}`}>
+                                  {a.mode}
+                                </span>
+                              </td>
+                              <td className="py-3 px-2 text-gray-700 dark:text-gray-200">{a.score}/{a.total} ({a.percentage}%)</td>
+                              <td className="py-3 px-2 text-right text-xs text-gray-400 dark:text-gray-500">{new Date(a.createdAt).toLocaleDateString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ============ TAB: AI Generator ============ */}
+        {tab === "ai" && (
+          <div className="animate-fade-in space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <span className="text-3xl">🤖</span>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">AI Question Generator</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Powered by OpenAI — falls back to the built-in engine offline</p>
+                </div>
+              </div>
+
+              {aiErr && (
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg px-4 py-3 mb-4">{aiErr}</div>
+              )}
+
+              <form onSubmit={generateQuestions} className="grid sm:grid-cols-4 gap-3 mb-6">
+                <input
+                  type="text"
+                  placeholder="Topic (e.g. React)"
+                  value={aiForm.topic}
+                  onChange={(e) => setAiForm({ ...aiForm, topic: e.target.value })}
+                  className="px-3 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-fuchsia-500/40"
+                />
+                <select
+                  value={aiForm.difficulty}
+                  onChange={(e) => setAiForm({ ...aiForm, difficulty: e.target.value })}
+                  className="px-3 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-fuchsia-500/40"
+                >
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+                <select
+                  value={aiForm.count}
+                  onChange={(e) => setAiForm({ ...aiForm, count: Number(e.target.value) })}
+                  className="px-3 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-fuchsia-500/40"
+                >
+                  {[3, 5, 8, 10].map((n) => <option key={n} value={n}>{n} questions</option>)}
+                </select>
+                <button
+                  type="submit"
+                  disabled={aiLoading}
+                  className="px-4 py-2.5 rounded-lg bg-linear-to-r from-fuchsia-600 to-violet-600 text-white text-sm font-bold hover:from-fuchsia-700 hover:to-violet-700 disabled:opacity-60 transition-all shadow-lg shadow-fuchsia-500/25"
+                >
+                  {aiLoading ? "Generating..." : "✦ Generate Questions"}
+                </button>
+              </form>
+
+              {aiQuestions.length > 0 && (
+                <div className="space-y-3 mb-5">
+                  {aiQuestions.map((q, i) => (
+                    <div key={i} className="bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-xl p-4">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{i + 1}. {q.questionText}</p>
+                        <span className="shrink-0 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-fuchsia-100 dark:bg-fuchsia-900/40 text-fuchsia-600 dark:text-fuchsia-400">{q.difficulty}</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                        {q.options.map((opt, oi) => (
+                          <span key={oi} className={`text-xs px-2.5 py-1 rounded ${
+                            oi === q.correctAnswer
+                              ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-semibold ring-1 ring-emerald-300 dark:ring-emerald-700"
+                              : "bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400"
+                          }`}>
+                            {String.fromCharCode(65 + oi)}. {opt}
+                          </span>
+                        ))}
+                      </div>
+                      {q.explanation && (
+                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">💡 {q.explanation}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {aiQuestions.length > 0 && (
+                <button
+                  onClick={saveAiQuestions}
+                  disabled={savingAi}
+                  className="w-full px-4 py-3 rounded-xl bg-linear-to-r from-emerald-500 to-green-600 text-white text-sm font-bold hover:from-emerald-600 hover:to-green-700 disabled:opacity-60 transition-all shadow-lg shadow-emerald-500/25"
+                >
+                  {savingAi ? "Saving to Question Bank..." : `📥 Save ${aiQuestions.length} Question(s) to Bank`}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ============ TAB: Questions ============ */}
         {tab === "questions" && (
           <div className="animate-fade-in">
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
@@ -160,30 +394,28 @@ export default function AdminDashboard() {
               </div>
 
               {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="w-8 h-8 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 rounded-full animate-spin" />
-                </div>
+                <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 rounded-full animate-spin" /></div>
               ) : filteredQuestions.length === 0 ? (
-                <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-12">
-                  {searchQ ? "No matching questions." : "No questions yet."}
-                </p>
+                <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-12">{searchQ ? "No matching questions." : "No questions yet."}</p>
               ) : (
                 <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
                   {filteredQuestions.map((q) => (
-                    <div
-                      key={q._id}
-                      className="flex items-start gap-3 bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-xl p-4 group hover:shadow-md transition-all"
-                    >
+                    <div key={q._id} className="flex items-start gap-3 bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-xl p-4 group hover:shadow-md transition-all">
                       <span className={`shrink-0 w-1.5 h-full min-h-[60px] rounded-full bg-linear-to-b ${getLangGrad(q.language)}`} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 mb-1.5">
-                              {q.language}
-                            </span>
-                            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 leading-relaxed">
-                              {q.questionText}
-                            </p>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400">
+                                {q.language}
+                              </span>
+                              {q.difficulty && (
+                                <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-gray-400">
+                                  {q.difficulty}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 leading-relaxed">{q.questionText}</p>
                           </div>
                           <button
                             onClick={() => handleDeleteQuestion(q._id)}
@@ -194,14 +426,11 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex flex-wrap gap-1.5 mt-2">
                           {q.options.map((opt, i) => (
-                            <span
-                              key={i}
-                              className={`text-xs px-2 py-0.5 rounded ${
-                                i === q.correctAnswer
-                                  ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-semibold ring-1 ring-emerald-300 dark:ring-emerald-700"
-                                  : "bg-gray-100 dark:bg-slate-600 text-gray-500 dark:text-gray-400"
-                              }`}
-                            >
+                            <span key={i} className={`text-xs px-2 py-0.5 rounded ${
+                              i === q.correctAnswer
+                                ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-semibold ring-1 ring-emerald-300 dark:ring-emerald-700"
+                                : "bg-gray-100 dark:bg-slate-600 text-gray-500 dark:text-gray-400"
+                            }`}>
                               {String.fromCharCode(65 + i)}. {opt}
                             </span>
                           ))}
@@ -215,67 +444,31 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab: Users */}
+        {/* ============ TAB: Users ============ */}
         {tab === "users" && (
           <div className="animate-fade-in space-y-6">
-            {/* Create User Card */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 sm:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <span className="w-1.5 h-5 bg-emerald-600 rounded-full" />
-                  Users
-                </h2>
-                <button
-                  onClick={() => setShowCreate(!showCreate)}
-                  className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-all shadow-md active:scale-[0.98]"
-                >
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><span className="w-1.5 h-5 bg-emerald-600 rounded-full" />Users</h2>
+                <button onClick={() => setShowCreate(!showCreate)} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-all shadow-md active:scale-[0.98]">
                   {showCreate ? "✕ Cancel" : "➕ Create User"}
                 </button>
               </div>
 
-              {/* Create User Form */}
               {showCreate && (
                 <form onSubmit={handleCreateUser} className="mb-6 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl border border-gray-200 dark:border-slate-600 animate-slide-down">
                   <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 mb-3">New Account</h3>
-                  {formErr && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mb-3 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-lg">{formErr}</p>
-                  )}
+                  {formErr && <p className="text-xs text-red-600 dark:text-red-400 mb-3 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-lg">{formErr}</p>}
                   <div className="grid sm:grid-cols-4 gap-3">
-                    <input
-                      type="text"
-                      placeholder="Full name"
-                      className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder-gray-400"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    />
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder-gray-400"
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    />
-                    <input
-                      type="password"
-                      placeholder="Password (6+ chars)"
-                      className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder-gray-400"
-                      value={form.password}
-                      onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    />
+                    <input type="text" placeholder="Full name" className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder-gray-400" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                    <input type="email" placeholder="Email" className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder-gray-400" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                    <input type="password" placeholder="Password (6+ chars)" className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder-gray-400" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
                     <div className="flex gap-2">
-                      <select
-                        className="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40"
-                        value={form.role}
-                        onChange={(e) => setForm({ ...form, role: e.target.value })}
-                      >
+                      <select className="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/40" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                       </select>
-                      <button
-                        type="submit"
-                        disabled={formLoading}
-                        className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-60 transition shadow-sm active:scale-[0.98]"
-                      >
+                      <button type="submit" disabled={formLoading} className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-60 transition shadow-sm active:scale-[0.98]">
                         {formLoading ? "..." : "Add"}
                       </button>
                     </div>
@@ -283,11 +476,8 @@ export default function AdminDashboard() {
                 </form>
               )}
 
-              {/* Users List */}
               {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="w-8 h-8 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 rounded-full animate-spin" />
-                </div>
+                <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 rounded-full animate-spin" /></div>
               ) : users.length === 0 ? (
                 <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">No users found.</p>
               ) : (
@@ -306,29 +496,16 @@ export default function AdminDashboard() {
                         <tr key={u._id} className="border-b border-gray-100 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition">
                           <td className="py-3 px-2">
                             <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                                {(u.name || "U").charAt(0).toUpperCase()}
-                              </div>
+                              <div className="w-7 h-7 rounded-full bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold shrink-0">{(u.name || "U").charAt(0).toUpperCase()}</div>
                               <span className="font-medium text-gray-800 dark:text-gray-100">{u.name}</span>
                             </div>
                           </td>
                           <td className="py-3 px-2 text-gray-500 dark:text-gray-400">{u.email}</td>
                           <td className="py-3 px-2">
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                              u.role === "admin"
-                                ? "bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400"
-                                : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
-                            }`}>
-                              {u.role}
-                            </span>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${u.role === "admin" ? "bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400" : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"}`}>{u.role}</span>
                           </td>
                           <td className="py-3 px-2 text-right">
-                            <button
-                              onClick={() => handleDeleteUser(u._id)}
-                              className="text-red-500 hover:text-red-700 dark:hover:text-red-400 text-xs font-semibold hover:bg-red-50 dark:hover:bg-red-900/30 px-2 py-1 rounded-lg transition"
-                            >
-                              Delete
-                            </button>
+                            <button onClick={() => handleDeleteUser(u._id)} className="text-red-500 hover:text-red-700 dark:hover:text-red-400 text-xs font-semibold hover:bg-red-50 dark:hover:bg-red-900/30 px-2 py-1 rounded-lg transition">Delete</button>
                           </td>
                         </tr>
                       ))}

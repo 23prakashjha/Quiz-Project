@@ -48,12 +48,28 @@ const questionSchema = new mongoose.Schema(
       },
     },
 
-    // 🔹 Optional: who created the question (if you have user auth)
+    // 🎚️ Difficulty used by the adaptive engine (misses on old data → treated as easy)
+    difficulty: {
+      type: String,
+      enum: ["easy", "medium", "hard"],
+      default: "easy",
+    },
+
+    // 💡 Optional AI/human explanation shown when the student gets it wrong
+    explanation: {
+      type: String,
+      default: "",
+    },
+
+    // 🔹 Optional: who created the question (admin or AI)
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: false,
     },
+
+    // 🤖 Mark AI-generated questions (useful for admin review)
+    aiGenerated: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

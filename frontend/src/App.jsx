@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Home from "./pages/Home";
 import QuizPage from "./pages/QuizPage";
+import AdaptiveQuizPage from "./pages/AdaptiveQuizPage";
 import Result from "./pages/ResultPage";
+import Dashboard from "./pages/Dashboard";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import About from "./pages/About";
@@ -13,21 +15,15 @@ import AdminPanel from "./components/AdminPanel";
 import AdminDashboard from "./pages/AdminDashboard";
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(null); // null = checking
-  const [user, setUser] = useState(null);
-
-  // ✅ Check login status on load
-  useEffect(() => {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-
-    if (token && storedUser) {
-      setIsAuthenticated(true);
-      setUser(JSON.parse(storedUser));
-    } else {
-      setIsAuthenticated(false);
-    }
-  }, []);
+    return Boolean(token && storedUser);
+  });
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
   // ✅ Handle logout
   const handleLogout = () => {
@@ -44,15 +40,6 @@ export default function App() {
     setUser(userData);
     setIsAuthenticated(true);
   };
-
-  // ⏳ Loading state to avoid flicker on refresh
-  if (isAuthenticated === null) {
-    return (
-      <div className="h-screen flex items-center justify-center text-xl font-semibold text-blue-600">
-        Checking authentication...
-      </div>
-    );
-  }
 
   return (
     <Router>
@@ -104,9 +91,21 @@ export default function App() {
           }
         />
         <Route
+          path="/quiz/adaptive/:topic"
+          element={
+            isAuthenticated ? <AdaptiveQuizPage /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route
           path="/result"
           element={
             isAuthenticated ? <Result /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />
           }
         />
         <Route
